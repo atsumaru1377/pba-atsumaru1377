@@ -52,15 +52,13 @@ fn time_integration_implicit(rv0: &mut (f32, f32), dt: f32) {
     // ----------------------
     // write some code below
 
-    let dfdr = 2f32 / (r0 * r0 * r0); // hint!
+    let dfdr = 2f32 / (r0 * r0 * r0);
 
-    // let a_mat = [[???, ???], [???, ???]]; // hint
-    // let b_vec = [???, ???]; // hint
-    // let a_mat_inv = inverse_matrix_2x2(&a_mat).unwrap(); // hint
-    // let res = mult_mat2_vec(&a_mat_inv, &b_vec); // hint
-    // *rv0 = (res[0], res[1]); // hint
-
-    *rv0 = (r0, v0); // delete this line
+    let a_mat = [[1f32, -dt], [-dt * dfdr, 1f32]];
+    let b_vec = [r0, v0 - 3f32 * dt / (r0 * r0)];
+    let a_mat_inv = inverse_matrix_2x2(&a_mat).unwrap();
+    let res = mult_mat2_vec(&a_mat_inv, &b_vec);
+    *rv0 = (res[0], res[1]);
 
     // no further edit from here
     // ----------------------
@@ -77,7 +75,7 @@ fn reflection(rv0: &mut (f32, f32)) {
     let energy0 = 0.5f32 * v0 * v0 - 1f32 / r0; // energy before reflection
     let r1 = 0.5f32;
     let v1 = (2f32 * energy0 + 4f32).max(0.).sqrt();
-    let energy1 = 0.5f32 * v1 * v1 - 1f32 / r1; // energy before reflection
+    let _energy1 = 0.5f32 * v1 * v1 - 1f32 / r1; // energy before reflection
 
     // dbg!(energy1, energy0);
 
