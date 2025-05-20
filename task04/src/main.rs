@@ -196,6 +196,10 @@ fn nearest_kdtree_naive(
 
     // no further edit from here
     // ---------------------------------------------------------------
+    let dist = signed_distance_aabb(pos_in, aabb_node);
+    if dist > (nodes[*idx_node_nearest].pos - pos_in).norm() {
+        return;
+    }
 
     let pos_node = nodes[idx_node].pos;
 
@@ -275,7 +279,10 @@ fn nearest_kdtree_faster(
 
     // no further edit from here
     // ---------------------------------------------------------------
-
+    let dist = signed_distance_aabb(pos_in, aabb_node);
+    if dist > (nodes[*idx_node_nearest].pos - pos_in).norm() {
+        return;
+    }
     let pos_node = nodes[idx_node].pos;
 
     if (pos_node - pos_in).norm() < (nodes[*idx_node_nearest].pos - pos_in).norm() {
@@ -289,43 +296,88 @@ fn nearest_kdtree_faster(
         // division in x direction
         let aabb_west = [aabb_node[0], aabb_node[1], pos_node.x, aabb_node[3]];
         let aabb_east = [pos_node.x, aabb_node[1], aabb_node[2], aabb_node[3]];
-        nearest_kdtree_naive(
-            idx_node_nearest,
-            pos_in,
-            nodes,
-            nodes[idx_node].idx_node_left,
-            &aabb_west,
-            i_depth + 1,
-        );
-        nearest_kdtree_naive(
-            idx_node_nearest,
-            pos_in,
-            nodes,
-            nodes[idx_node].idx_node_right,
-            &aabb_east,
-            i_depth + 1,
-        );
+
+        let dist_west = signed_distance_aabb(pos_in, &aabb_west);
+        let dist_east = signed_distance_aabb(pos_in, &aabb_east);
+
+        if dist_west < dist_east {
+            nearest_kdtree_naive(
+                idx_node_nearest,
+                pos_in,
+                nodes,
+                nodes[idx_node].idx_node_left,
+                &aabb_west,
+                i_depth + 1,
+            );
+            nearest_kdtree_naive(
+                idx_node_nearest,
+                pos_in,
+                nodes,
+                nodes[idx_node].idx_node_right,
+                &aabb_east,
+                i_depth + 1,
+            );
+        } else {
+            nearest_kdtree_naive(
+                idx_node_nearest,
+                pos_in,
+                nodes,
+                nodes[idx_node].idx_node_right,
+                &aabb_east,
+                i_depth + 1,
+            );
+            nearest_kdtree_naive(
+                idx_node_nearest,
+                pos_in,
+                nodes,
+                nodes[idx_node].idx_node_left,
+                &aabb_west,
+                i_depth + 1,
+            );
+        }
     } else {
         // division in y-direction
         let aabb_north = [aabb_node[0], pos_node.y, aabb_node[2], aabb_node[3]];
         let aabb_south = [aabb_node[0], aabb_node[1], aabb_node[2], pos_node.y];
-        // division in y-direction
-        nearest_kdtree_naive(
-            idx_node_nearest,
-            pos_in,
-            nodes,
-            nodes[idx_node].idx_node_left,
-            &aabb_south,
-            i_depth + 1,
-        );
-        nearest_kdtree_naive(
-            idx_node_nearest,
-            pos_in,
-            nodes,
-            nodes[idx_node].idx_node_right,
-            &aabb_north,
-            i_depth + 1,
-        );
+
+        let dist_north = signed_distance_aabb(pos_in, &aabb_north);
+        let dist_south = signed_distance_aabb(pos_in, &aabb_south);
+
+        if dist_north < dist_south {
+            nearest_kdtree_naive(
+                idx_node_nearest,
+                pos_in,
+                nodes,
+                nodes[idx_node].idx_node_left,
+                &aabb_north,
+                i_depth + 1,
+            );
+            nearest_kdtree_naive(
+                idx_node_nearest,
+                pos_in,
+                nodes,
+                nodes[idx_node].idx_node_right,
+                &aabb_south,
+                i_depth + 1,
+            );
+        } else {
+            nearest_kdtree_naive(
+                idx_node_nearest,
+                pos_in,
+                nodes,
+                nodes[idx_node].idx_node_right,
+                &aabb_south,
+                i_depth + 1,
+            );
+            nearest_kdtree_naive(
+                idx_node_nearest,
+                pos_in,
+                nodes,
+                nodes[idx_node].idx_node_left,
+                &aabb_north,
+                i_depth + 1,
+            );
+        }
     }
     // do not modify from there
     // --------------------------
