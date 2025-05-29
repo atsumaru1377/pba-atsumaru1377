@@ -11,7 +11,14 @@ pub fn pixel_north_west_to_xy(xy: &[f32; 2], img_resolution: usize) -> Option<us
     // ------------------
     // implement some code below.
 
-    None // comment out
+    let ix = x.floor() as usize;
+    let iy = y.ceil() as usize;
+
+    if ix + 1 >= img_resolution || iy + 1 >= img_resolution {
+        return None; // out of bounds
+    }
+    let i_pix_nw = iy * img_resolution + ix;
+    Some(i_pix_nw)
 
     // no edit from here
     // -----------------
@@ -63,7 +70,10 @@ pub fn gradient(xy: &[f32; 2], img_resolution: usize, pix2val: &[f32]) -> [f32; 
     // ---------------------
     // write some code below to compute gradient
 
-    [0f32, 0f32] // comment out
+    let grad_x = (val_ne - val_nw) * (1.0 - rx) + (val_se - val_sw) * rx;
+    let grad_y = (val_sw - val_nw) * (1.0 - ry) + (val_se - val_ne) * ry;
+
+    [grad_x, grad_y]
 
     // no edit from here
     // -----------------
@@ -109,7 +119,7 @@ fn solve_laplace_gauss_seidel_on_grid(
             // ------------------------
             // write some code below
 
-            // pix2val[i_pix_center] =  // hint
+            pix2val[i_pix_center] = (val_north + val_south + val_west + val_east) / 4.0;
 
             // no edit from here
             // -------------------------------
@@ -213,7 +223,7 @@ fn main() -> anyhow::Result<()> {
     for i_iteration in 0..1000 {
         if i_iteration % 10 == 0 {
             canvas.clear(0);
-            for i_pix in 0..pix2val.len() {
+            for (i_pix, _) in pix2val.iter().enumerate() {
                 canvas.data[i_pix] = (pix2val[i_pix] * 254.0) as u8;
             }
             canvas.write();
@@ -242,7 +252,7 @@ fn main() -> anyhow::Result<()> {
             point.y -= grad[1] * 0.001;
         }
         canvas.clear(0);
-        for i_pix in 0..pix2val.len() {
+        for (i_pix, _) in pix2val.iter().enumerate() {
             canvas.data[i_pix] = (pix2val[i_pix] * 254.0) as u8;
         }
         for xy in &point2xy {
