@@ -26,73 +26,89 @@ public class MyCloth : MonoBehaviour
     {
         Vector3[] vtx2xyz = mesh.vertices; // the current vertex positions
         Debug.Log($"Energy={total_energy(vtx2xyz)}");
-        for(int i=0;i<100;++i){
-          step_gradient_descent(vtx2xyz); // update vertex positions by gradient descent
+        for (int i = 0; i < 100; ++i)
+        {
+            step_gradient_descent(vtx2xyz); // update vertex positions by gradient descent
         }
         mesh.vertices = vtx2xyz; // update vertex positions
         mesh.RecalculateNormals(); // update normals
     }
 
-    float total_energy(Vector3[] vtx2xyz) {
+    float total_energy(Vector3[] vtx2xyz)
+    {
         float eng = 0.0F;
-        for(int i_vtx=0;i_vtx<vtx2xyz.Length;++i_vtx){
+        for (int i_vtx = 0; i_vtx < vtx2xyz.Length; ++i_vtx)
+        {
             eng += Vector3.Dot(vtx2xyz[i_vtx], -gravity) * mass;
         }
-        for(int i_line=0;i_line<line2vtx.Length/2;++i_line){            
-            int i0_vtx = line2vtx[i_line*2+0]; // one of the vertex index of this line element
-            int i1_vtx = line2vtx[i_line*2+1]; // another vertex index of this line element 
+        for (int i_line = 0; i_line < line2vtx.Length / 2; ++i_line)
+        {
+            int i0_vtx = line2vtx[i_line * 2 + 0]; // one of the vertex index of this line element
+            int i1_vtx = line2vtx[i_line * 2 + 1]; // another vertex index of this line element
             float length_ini = Vector3.Distance(vtx2xyz_ini[i0_vtx], vtx2xyz_ini[i1_vtx]); // initial length of this line
-            Vector3[] node2xyz = new[] { vtx2xyz[i0_vtx], vtx2xyz[i1_vtx]};
+            Vector3[] node2xyz = new[] { vtx2xyz[i0_vtx], vtx2xyz[i1_vtx] };
             eng += energy_spring(node2xyz, length_ini, stiffness);
         }
         return eng;
     }
 
-    void step_gradient_descent(Vector3[] vtx2xyz) {
-        Vector3[] vtx2grad = new Vector3 [vtx2xyz.Length]; // get space for gradient
-        for(int i_vtx=0;i_vtx<vtx2xyz.Length;++i_vtx){
-            vtx2grad[i_vtx] = - gravity * mass;
+    void step_gradient_descent(Vector3[] vtx2xyz)
+    {
+        Vector3[] vtx2grad = new Vector3[vtx2xyz.Length]; // get space for gradient
+        for (int i_vtx = 0; i_vtx < vtx2xyz.Length; ++i_vtx)
+        {
+            vtx2grad[i_vtx] = -gravity * mass;
         }
-        for(int i_line=0;i_line<line2vtx.Length/2;++i_line){            
-            int i0_vtx = line2vtx[i_line*2+0]; // one of the vertex index of this line element
-            int i1_vtx = line2vtx[i_line*2+1]; // another vertex index of this line element 
+        for (int i_line = 0; i_line < line2vtx.Length / 2; ++i_line)
+        {
+            int i0_vtx = line2vtx[i_line * 2 + 0]; // one of the vertex index of this line element
+            int i1_vtx = line2vtx[i_line * 2 + 1]; // another vertex index of this line element
             float length_ini = Vector3.Distance(vtx2xyz_ini[i0_vtx], vtx2xyz_ini[i1_vtx]); // initial length of this line
-            Vector3[] node2xyz = new[] { vtx2xyz[i0_vtx], vtx2xyz[i1_vtx]};
+            Vector3[] node2xyz = new[] { vtx2xyz[i0_vtx], vtx2xyz[i1_vtx] };
             // float w = energy_spring(node2xyz, length_ini, stiffness);
             var grad_w = gradient_spring(node2xyz, length_ini, stiffness);
             vtx2grad[i0_vtx] += grad_w[0];
-            vtx2grad[i1_vtx] += grad_w[1];                        
+            vtx2grad[i1_vtx] += grad_w[1];
         }
         {
-            // set fixed boundary condition 
+            // set fixed boundary condition
             SphereCollider sphereCollider = GetComponent<SphereCollider>();
             Vector3 center = sphereCollider.center;
-            float radius =  sphereCollider.radius;
-            for(int i_vtx=0;i_vtx<vtx2xyz.Length;++i_vtx){
+            float radius = sphereCollider.radius;
+            for (int i_vtx = 0; i_vtx < vtx2xyz.Length; ++i_vtx)
+            {
                 Vector3 pos = vtx2xyz[i_vtx];
-                if( Vector3.Distance(pos, center) < radius ){
+                if (Vector3.Distance(pos, center) < radius)
+                {
                     vtx2grad[i_vtx] = Vector3.zero;
                 }
             }
         }
-        // gradient descent 
-        for(int i_vtx=0;i_vtx<vtx2xyz.Length;++i_vtx){
+        // gradient descent
+        for (int i_vtx = 0; i_vtx < vtx2xyz.Length; ++i_vtx)
+        {
             vtx2xyz[i_vtx] -= learning_rate * vtx2grad[i_vtx];
         }
     }
-    
+
     // this function returns the spring elastic energy
-    float energy_spring(Vector3[] node2xyz, float length_ini, float stiffness) {
+    float energy_spring(Vector3[] node2xyz, float length_ini, float stiffness)
+    {
         float length = Vector3.Distance(node2xyz[0], node2xyz[1]); // distance between p0 and p1
         float C = length - length_ini; // the length differences.
         return 0.5f * stiffness * C * C; // Hooke's law. energy is square of length difference W=1/2*k*C*C
     }
 
     // this function returns the gradient of a spring elastic energy w.r.t. the spring's end position
-    Vector3[] gradient_spring(Vector3[] node2xyz, float length_ini, float stiffness) {
+    Vector3[] gradient_spring(Vector3[] node2xyz, float length_ini, float stiffness)
+    {
         float length = Vector3.Distance(node2xyz[0], node2xyz[1]); // distance between p0 and p1
         // ---------- write some code below
-
-        return new Vector3[2] { Vector3.zero, Vector3.zero }; // comment out this line
+        float length_diff = length - length_ini;
+        Vector3 dir = (node2xyz[0] - node2xyz[1]).normalized;
+        Vector3 grad0 = stiffness * length_diff * dir;
+        Vector3 grad1 = -grad0;
+        return new Vector3[2] { grad0, grad1 };
+        // return new Vector3[2] { Vector3.zero, Vector3.zero }; // comment out this line
     }
 }

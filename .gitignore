@@ -86,6 +86,11 @@ $RECYCLE.BIN/
 **/*.opendb
 **/*.VC.db
 
+# Unity Dir
+**/[Aa]ssets/
+**/Packages/
+**/ProjectSettings/
+
 # Unity3D generated meta files
 **/*.pidb.meta
 **/*.pdb.meta
