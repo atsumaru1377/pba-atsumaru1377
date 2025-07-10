@@ -37,10 +37,6 @@ public class MyRigidBody : MonoBehaviour
             this.transform.rotation = rot * Quaternion.AngleAxis(math.length(omega) * timeStep * 180.0f / Mathf.PI, Vector3.Normalize(omega));
             // ----------------
             // write a few line of code below to update the angular velocity at the reference configuration `omega` using forward time integration
-
-            // 剛体の角運動方程式: I * domega/dt = 0（外力なし）
-            // ただし、剛体回転の非線形性を考慮し、
-            // domega/dt = I^{-1} * (I*omega) x omega
             float3 domega = math.mul(math.inverse(inertia_tensor), math.cross(math.mul(inertia_tensor, omega), omega));
             omega += domega * timeStep;
 
@@ -97,7 +93,13 @@ public class MyRigidBody : MonoBehaviour
             float3 pa = p0 + p1 + p2;
             // -----------------
             // write some code below
-            res += (math.dot(pa * 0.25f, pa * 0.25f) * float3x3.identity - OuterProduct(pa * 0.25f, pa * 0.25f)) * volume;
+            float3x3 xx = math.dot(p0, p0) * float3x3.identity - OuterProduct(p0, p0);
+            float3x3 yy = math.dot(p1, p1) * float3x3.identity - OuterProduct(p1, p1);
+            float3x3 zz = math.dot(p2, p2) * float3x3.identity - OuterProduct(p2, p2);
+            float3x3 xy = math.dot(p0, p1) * float3x3.identity - OuterProduct(p0, p1);
+            float3x3 yz = math.dot(p1, p2) * float3x3.identity - OuterProduct(p1, p2);
+            float3x3 zx = math.dot(p2, p0) * float3x3.identity - OuterProduct(p2, p0);
+            res += (xx + yy + zz + xy + yz + zx) * volume / 20.0f;
             // end of edit
             // ------------------
         }

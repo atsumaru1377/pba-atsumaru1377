@@ -100,11 +100,12 @@ Assume that the T-shaped object is solid object with mass density `1.0f`.　
 Here we compute the inertia tensor in the reference configuration. 
 Write the inertia tensor below.
 
+
 |   | 0 | 1 | 2 |
 |---|---|---|---|
-| 0 | 16.47225f | 2.086163E-07f| 0.1376308f |
-| 1 | 2.086163E-07f | 100.2299f | 1.024455E-07f |
-| 2 | 0.1376308f | 1.024455E-07f | 106.6974f |
+| 0 | 9.305848f | 2.086163E-07f | 0.1816132f |
+| 1 | -1.788139E-07f | 69.06071f | 1.294538E-07f |
+| 2 | -0.1816132f | 8.102506E-08f | 72.18861f |
 
 Note that the inertia tensor is symmetric.   
 
